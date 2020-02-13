@@ -1,0 +1,1 @@
+select wiki_data.page_title, wiki_data.doi, doidata.retracted from doidata inner join wiki_data on doidata.doi = wiki_data.doi where doidata.retracted = true;
