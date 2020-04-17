@@ -93,7 +93,7 @@ INNER JOIN citations c ON c.target_doi = w.doi;
 ```
 `result: 433830303 (04/17/2020)`
 
-### General tallies for wiki cite counts in our system
+### General tallies for wos cite counts in our system
 
 ```sql
 SELECT SUM(wos_total) AS wos_sum_total,
@@ -101,10 +101,11 @@ SELECT SUM(wos_total) AS wos_sum_total,
     SUM(wos_contradicting) AS wos_sum_contradicting,
     SUM(wos_mentioning) AS wos_sum_mentioning,
     SUM(wos_unclassified) AS wos_sum_unclassified,
-    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_supporting = 0) AS wos_count_contradict_without_supporting,
-    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_contradicting = 0) AS wos_count_support_without_contradict,
-    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_contradicting > 0) AS wos_count_supporting_and_contradicting,
-    COUNT(*) FILTER(WHERE wos_supporting = 0 AND wos_contradicting = 0) AS wos_count_no_supporting_or_contradicting
+    COUNT(*) FILTER(WHERE wos_mentioning > 0 AND wos_supporting = 0 AND wos_contradicting = 0) AS wos_mentioning_only,
+    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_mentioning >= 0 AND wos_contradicting = 0) AS wos_count_support_without_contradict,
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_mentioning >= 0 AND wos_supporting = 0) AS wos_count_contradict_without_supporting,
+    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_contradicting > 0 AND wos_mentioning >= 0) AS wos_count_supporting_and_contradicting,
+    COUNT(*) FILTER(WHERE wos_total = 0) AS wos_no_total
 FROM
  (SELECT w.doi,
      SUM(total) AS wos_total,
@@ -117,19 +118,19 @@ FROM
   GROUP BY w.doi) t;
 ```
 result: (04/17/2020)
-
 ```
 [
   {
     "wos_sum_contradicting" : 2710605,
     "wos_sum_total" : 429781265,
-    "wos_count_no_supporting_or_contradicting" : 17441586,
+    "wos_mentioning_only" : 17441574,
     "wos_sum_mentioning" : 408129332,
     "wos_count_contradict_without_supporting" : 521024,
     "wos_sum_supporting" : 18940149,
     "wos_count_supporting_and_contradicting" : 1407829,
     "wos_sum_unclassified" : 1179,
-    "wos_count_support_without_contradict" : 6038194
+    "wos_count_support_without_contradict" : 6038194,
+    "wos_no_total" : 0
   }
 ]
 ```
