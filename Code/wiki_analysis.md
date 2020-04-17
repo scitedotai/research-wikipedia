@@ -18,6 +18,14 @@ select count(*) from doidata inner join wiki_data on doidata.doi = wiki_data.doi
 ```
 `result: 1880684 (04/17/2020)`
 
+### Total distinct valid wiki_data records with a valid doi
+```sql
+SELECT COUNT(*) FROM (SELECT DISTINCT doi FROM (
+	SELECT doidata.doi as doi FROM doidata INNER JOIN wiki_data ON doidata.doi = wiki_data.doi
+) AS b) AS c;
+```
+`result: 841848 (04/17/2020)`
+
 ### Get the number of valid_doi from wiki_data that do not have citations
 
 ```sql
