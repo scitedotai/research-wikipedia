@@ -65,6 +65,17 @@ WHERE c.target_doi IS NULL;
 ```
 `result: 26311090 (04/17/2020)`
 
+### Total number of WoS DOIs that we do have cites for, against citation_tallies
+
+```sql
+SELECT COUNT(wos_doi_data.doi)
+FROM wos_doi_data
+LEFT JOIN citation_tallies c ON c.doi = wos_doi_data.doi
+WHERE c.doi IS NOT NULL;
+```
+`result: 25408633 (04/17/2020)`
+
+
 ### Total number of WoS DOIs that we don't have cites for, against citation_tallies
 
 ```sql
@@ -96,18 +107,26 @@ INNER JOIN citations c ON c.target_doi = w.doi;
 ### General tallies for wos cite counts in our system
 
 ```sql
-SELECT SUM(wos_total) AS wos_sum_total,
-    SUM(wos_supporting) AS wos_sum_supporting,
-    SUM(wos_contradicting) AS wos_sum_contradicting,
-    SUM(wos_mentioning) AS wos_sum_mentioning,
-    SUM(wos_unclassified) AS wos_sum_unclassified,
-    COUNT(*) FILTER(WHERE wos_mentioning > 0 AND wos_supporting = 0 AND wos_contradicting = 0) AS wos_mentioning_only,
-    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_mentioning >= 0 AND wos_contradicting = 0) AS wos_count_support_without_contradict,
-    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_mentioning >= 0 AND wos_supporting = 0) AS wos_count_contradict_without_supporting,
-    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_contradicting > 0 AND wos_mentioning >= 0) AS wos_count_supporting_and_contradicting,
-    COUNT(*) FILTER(WHERE wos_total = 0) AS wos_no_total
+SELECT SUM(wos_total) AS a_wos_sum_total,
+    SUM(wos_supporting) AS a_wos_sum_supporting,
+    SUM(wos_contradicting) AS a_wos_sum_contradicting,
+    SUM(wos_mentioning) AS a_wos_sum_mentioning,
+    SUM(wos_unclassified) AS a_wos_sum_unclassified,
+    COUNT(*) FILTER(WHERE wos_mentioning > 0 AND wos_supporting = 0 AND wos_contradicting = 0) AS b_wos_mentioning_only,
+    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_mentioning = 0 AND wos_contradicting = 0) AS b_wos_supporting_only, 
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_supporting = 0 AND wos_mentioning = 0) AS b_wos_contradicting_only,
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_supporting > 0 AND wos_mentioning > 0) AS b_wos_all_tallies,
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_supporting > 0 AND wos_mentioning = 0) AS b_wos_contradict_and_support_only,
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_supporting = 0 AND wos_mentioning > 0) AS b_wos_contradict_and_mention_only,
+    COUNT(*) FILTER(WHERE wos_contradicting = 0 AND wos_supporting > 0 AND wos_mentioning > 0) AS b_wos_supporting_and_mention_only,
+    COUNT(*) FILTER(WHERE wos_mentioning = 0 AND wos_supporting = 0 AND wos_contradicting = 0) AS c_wos_no_cites,
+    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_mentioning >= 0 AND wos_contradicting = 0) AS c_wos_count_support_without_contradict,
+    COUNT(*) FILTER(WHERE wos_contradicting > 0 AND wos_mentioning >= 0 AND wos_supporting = 0) AS c_wos_count_contradict_without_supporting,
+    COUNT(*) FILTER(WHERE wos_supporting > 0 AND wos_contradicting > 0 AND wos_mentioning >= 0) AS c_wos_count_supporting_and_contradicting,
+    COUNT(*) FILTER(WHERE wos_unclassified > 0) AS d_wos_unclassified_papers,
+    COUNT(*) FILTER(WHERE wos_total = 0) AS d_wos_no_total
 FROM
- (SELECT w.doi,
+ (SELECT c.doi,
      SUM(total) AS wos_total,
      SUM(supporting) AS wos_supporting,
      SUM(contradicting) AS wos_contradicting,
@@ -115,22 +134,30 @@ FROM
      SUM(unclassified) AS wos_unclassified
   FROM wos_doi_data w
   INNER JOIN citation_tallies c ON c.doi = w.doi
-  GROUP BY w.doi) t;
+  GROUP BY c.doi) t;
 ```
 result: (04/17/2020)
 ```
 [
   {
-    "wos_sum_contradicting" : 2710605,
-    "wos_sum_total" : 429781265,
-    "wos_mentioning_only" : 17441574,
-    "wos_sum_mentioning" : 408129332,
-    "wos_count_contradict_without_supporting" : 521024,
-    "wos_sum_supporting" : 18940149,
-    "wos_count_supporting_and_contradicting" : 1407829,
-    "wos_sum_unclassified" : 1179,
-    "wos_count_support_without_contradict" : 6038194,
-    "wos_no_total" : 0
+    "b_wos_contradicting_only" : 16136,
+    "b_wos_contradict_and_mention_only" : 504888,
+    "a_wos_sum_unclassified" : 1179,
+    "c_wos_count_contradict_without_supporting" : 521024,
+    "d_wos_no_total" : 0,
+    "b_wos_supporting_only" : 142120,
+    "c_wos_no_cites" : 12,
+    "a_wos_sum_mentioning" : 408129332,
+    "a_wos_sum_contradicting" : 2710605,
+    "b_wos_mentioning_only" : 17441574,
+    "a_wos_sum_total" : 429781265,
+    "b_wos_contradict_and_support_only" : 2539,
+    "b_wos_supporting_and_mention_only" : 5896074,
+    "d_wos_unclassified_papers" : 1077,
+    "a_wos_sum_supporting" : 18940149,
+    "b_wos_all_tallies" : 1405290,
+    "c_wos_count_support_without_contradict" : 6038194,
+    "c_wos_count_supporting_and_contradicting" : 1407829
   }
 ]
 ```
