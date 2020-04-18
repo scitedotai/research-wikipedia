@@ -16,6 +16,20 @@ df_long <- df_long[df_long$value > 0,]
 
 df$total <- apply(df[2:4], 1, sum)
 
+mean(df$total)
+sd(df$total)
+
+mean(df$contradicting)
+sd(df$contradicting)
+
+mean(df$supporting)
+sd(df$supporting)
+
+mean(df$mentioning)
+sd(df$mentioning)
+
+
+
 hist(log(df$contradicting))
 hist(log(df$supporting))
 hist(log(df$mentioning))
