@@ -79,12 +79,13 @@ SELECT SUM(wiki_total) AS wiki_sum_total,
     SUM(wiki_contradicting) AS wiki_sum_contradicting,
     SUM(wiki_mentioning) AS wiki_sum_mentioning,
     SUM(wiki_unclassified) AS wiki_sum_unclassified,
-    COUNT(*) FILTER(WHERE wiki_contradicting > 0 AND wiki_supporting = 0) AS wiki_count_contradict_without_supporting,
-    COUNT(*) FILTER(WHERE wiki_supporting > 0 AND wiki_contradicting = 0) AS wiki_count_support_without_contradict,
-    COUNT(*) FILTER(WHERE wiki_supporting > 0 AND wiki_contradicting > 0) AS wiki_count_supporting_and_contradicting,
-    COUNT(*) FILTER(WHERE wiki_supporting = 0 AND wiki_contradicting = 0) AS wiki_count_no_supporting_or_contradicting
+    COUNT(*) FILTER(WHERE wiki_mentioning > 0 AND wiki_supporting = 0 AND wiki_contradicting = 0) AS wiki_mentioning_only,
+    COUNT(*) FILTER(WHERE wiki_supporting > 0 AND wiki_mentioning >= 0 AND wiki_contradicting = 0) AS wiki_count_support_without_contradict,
+    COUNT(*) FILTER(WHERE wiki_contradicting > 0 AND wiki_mentioning >= 0 AND wiki_supporting = 0) AS wiki_count_contradict_without_supporting,
+    COUNT(*) FILTER(WHERE wiki_supporting > 0 AND wiki_contradicting > 0 AND wiki_mentioning >= 0) AS wiki_count_supporting_and_contradicting,
+    COUNT(*) FILTER(WHERE wiki_total = 0) AS wiki_no_citations
 FROM
- (SELECT doi,
+ (SELECT c.doi,
      SUM(total) AS wiki_total,
      SUM(supporting) AS wiki_supporting,
      SUM(contradicting) AS wiki_contradicting,
@@ -93,4 +94,4 @@ FROM
   FROM wiki_data w
   INNER JOIN citation_tallies c ON c.doi = w.id
   WHERE w.id_type = 'doi'
-  GROUP BY doi) t;
+  GROUP BY c.doi) t;
