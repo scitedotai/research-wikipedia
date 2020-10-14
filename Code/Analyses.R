@@ -1,4 +1,3 @@
-
 library(readr)
 library(dplyr)
 library(reshape2)
@@ -26,12 +25,11 @@ median(df$total)
 IQR(df$total)
 range(df$total)
 
-
 mean(df$contradicting)
 sd(df$contradicting)
-median(df$total)
-IQR(df$total)
-range(df$total)
+median(df$contradicting)
+IQR(df$contradicting)
+range(df$contradicting)
 
 mean(df$supporting)
 sd(df$supporting)
